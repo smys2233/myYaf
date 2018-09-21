@@ -1,0 +1,160 @@
+1：代码没分层，职责不清，代码注释严重缺失，技术文档严重缺失，需求文档严重缺失
+
+2：多表联查
+$data = $log_model
+            ->alias("a")
+            ->join("left join ".C("DB_PREFIX")."users b on b.id = a.uid")
+            ->where($where)
+            ->field("a.uid as user_id,b.user_nicename as username,a.last_begin_time as start_time,
+            a.last_end_time as end_time,a.duration,a.channel_hits, concat(a.real_online_num,'/',a.virtual_online_num) as audience,if(is_mobile,'Yes','No') as by_phone,a.earn as income ")
+            ->limit($limit_begin . ',' . $limit_num)
+            ->order("a.id DESC")
+            ->select();
+3：返回的是最新插入的用户ID
+$rst = $users_model->add($data);
+		if(empty($user_nicename)){
+			$user_nicename = "用户".strval($rst);
+			$users_model->where(array('id'=>$rst))->setField('user_nicename',$user_nicename);
+		}
+4:发红包与抢红包，先把红包分成N份(如果用户指定了多少份，就分成多少份，如果用户没有指定多少份，就分按房间人数来分，拿到了N这个份数之后，先把红包按随机大小分成N份，然后再让其他用户来抢，
+按先来后到的顺序把对应的红包的钱响应到用户抢红包的动作里去)
+	$total=20;
+    $num=10;
+    $min=0.01;
+    for($i=1;$i<$num;$i++){
+        $safe_total=($total-($num-$i)*$min)/($num-$i);// 随机安全上限
+        $money=mt_rand($min*100,$safe_total*100)/100;
+        $total=$total-$money;
+        echo "第".$i."红包：".$money."元,"."余额：".$total."元 <br>";
+    }
+        echo "第".$num."个红包：".$money."元"."余额：".$total."元";
+		
+5:更新第三方的流播放地址
+	1:D:\phpStudy\PHPTutorial\WWW\web\chumslive\admin\themes\Chumslive\Portal\AdminChannel\view.html (1 hit)
+	Line 355:         url:"{:leuu('Portal/AdminChannel/change_stream')}",
+	
+	2:D:\phpStudy\PHPTutorial\WWW\web\chumslive\application\Portal\Controller\AdminChannelController.class.php (1 hit)
+	Line 1142: 	function change_stream(){}
+	
+6:python执行的脚本
+	zCheckLivingTimestamp.py #已经不用了
+	recordingScreenC2cN.py #录视频
+		GetPlayUrl:
+		
+	FlushThumbSiSiTVNew.py #检测主播在线
+		CheckLivingTimestamp:
+		RedisDeleteLivingRoomUsers:
+		RedisDeleteLivingRoom:
+		FlushLiveThumb:
+		
+	目录：/alidata/www/Chums/data/script/
+
+7:查看python或php执行的脚本：ps -ef |grep python
+
+8:php执行的脚本(swoole)==swoole跑的是IM通信
+	/alidata/www/Chums/server/server.php
+	
+9:视频存放的目录
+	/alidata/www/Chums/data/upload/record/
+	
+10:聊天室ID，是通过CURL请求第三方创建的
+
+11:mysql 慢查询日志
+	#开启慢查询日志记录
+	mysql> set global slow_query_log=on;
+	Query OK, 0 rows affected (0.00 sec)
+	#查询时间超过0.1秒的sql语句会被记录
+	mysql> set global long_query_time=0.1;
+	Query OK, 0 rows affected (0.03 sec)
+	#记录慢查询日志的文件地址
+	mysql> set global slow_query_log_file="/var/lib/mysql/localhost-slow.log";
+	Query OK, 0 rows affected (0.04 sec)
+	#记录没有使用索引的查询
+	mysql> set global log_queries_not_using_indexes=on;
+	Query OK, 0 rows affected (0.00 sec)
+	
+12:thinkphp3.2开启去掉index.php 在vhosts.conf中
+	location / {
+            index  index.html index.htm index.php;
+            #autoindex  on;
+            try_files $uri $uri/ /index.php$uri;
+        }
+13:composer
+	9.在你需要使用库的地方（如项目根目录）添加一个composer.json文件 
+	composer.json内容如何编辑？http://docs.phpcomposer.com/02-libraries.html 
+	初次使用，我什么都没写，空的文件夹。
+	10.windows用cmd 命令 输入：composer install 来安装composer.json中定义的库
+14:ab压力测试
+	./ab -n1000 -c100 http://127.0.0.1/orig.php
+
+15:chumms live IM即时通信模块
+
+16:chumms live 礼物模块
+
+17:chumms live 支付系统 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+999:github使用教程：
+	1:https://github.com,在github中注册帐号，并增加仓库：https://github.com/new
+	2:打开git bash 输入ssh-keygen -t rsa -C "your_email@youremail.com"  生成本机的key
+	3:打开id_rsa.pub,把里面的key复制到 github
+	4:ssh -T git@github.com  如果是第一次的会提示是否continue，输入yes就会看到：You’ve successfully authenticated, but GitHub does not provide shell access 。这就表示已成功连上github。
+	5:git config --global user.name "your name"  
+	  git config --global user.email "your_email@youremail.com"  
+	6:个人习惯将自己的文件储存在d盘之中，所以你先需要将git bash定位在d盘中 cd /D
+	7:git clone https://github.com/smys2233/myYaf.git
+	8:新建任意一个文件
+	9:提交刚才新建的文件：git add test.txt
+	10:git commit -m "my first commit"
+	11:提交到仓库:git push origin master (推送改动)
+	12:再之后，你只需要将你的代码，放到库的对应的文件夹中，然后使用，git add 、git commit -m "   " 、最后git push origin master，将你的代码提交就可以了。
+	13:分支:
+		创建一个叫做"feature_x"的分支，并切换过去：
+		git checkout -b feature_x
+		切换回主分支：
+		git checkout master
+		再把新建的分支删掉：
+		git branch -d feature_x
+		除非你将分支推送到远端仓库，不然该分支就是 不为他人所见的：
+		git push origin <branch>
+	14:更新与合并
+		要更新你的本地仓库至最新改动，执行：
+		git pull
+		以在你的工作目录中 获取（fetch） 并 合并（merge） 远端的改动。
+		要合并其他分支到你的当前分支（例如 master），执行：
+		git merge <branch>
+		在这两种情况下，git 都会尝试去自动合并改动。遗憾的是，这可能并非每次都成功，并可能出现冲突（conflicts）。 这时候就需要你修改这些文件来手动合并这些冲突（conflicts）。改完之后，你需要执行如下命令以将它们标记为合并成功：
+		git add <filename>
+		在合并改动之前，你可以使用如下命令预览差异：
+		git diff <source_branch> <target_branch>
+	15:替换本地改动
+		假如你操作失误（当然，这最好永远不要发生），你可以使用如下命令替换掉本地改动：
+		git checkout -- <filename>
+		此命令会使用 HEAD 中的最新内容替换掉你的工作目录中的文件。已添加到暂存区的改动以及新文件都不会受到影响。
+		假如你想丢弃你在本地的所有改动与提交，可以到服务器上获取最新的版本历史，并将你本地主分支指向它：
+		git fetch origin
+		git reset --hard origin/master
+	16:实用小贴士
+		内建的图形化 git：
+		gitk
+		彩色的 git 输出：
+		git config color.ui true
+		显示历史记录时，每个提交的信息只显示一行：
+		git config format.pretty oneline
+		交互式添加文件到暂存区：
+		git add -i
+
+
+	
